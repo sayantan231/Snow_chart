@@ -1,31 +1,20 @@
 import streamlit as st
 import pandas as pd
-import psycopg2
 import plotly.express as px
+from supabase import create_client
 
 st.set_page_config(page_title="Himalayan Snow Monitor", layout="wide")
-
-st.title("🏔 Himalayan Snow Monitor - Live Supabase Data")
-st.markdown("Monthly Snow Cover Percentage Analysis (2022 vs 2023)")
+st.title("🏔 Himalayan Snow Monitor - Live Supabase API")
 
 # Connect to Supabase
-@st.cache_data
-def load_data():
-    conn = psycopg2.connect(
-        host=st.secrets["DB_HOST"],
-        database=st.secrets["DB_NAME"],
-        user=st.secrets["DB_USER"],
-        password=st.secrets["DB_PASSWORD"],
-        port=st.secrets["DB_PORT"]
-    )
-    query = "SELECT * FROM snow_raw_data;"
-    df = pd.read_sql(query, conn)
-    conn.close()
-    return df
+supabase_url = st.secrets["SUPABASE_URL"]
+supabase_key = st.secrets["SUPABASE_KEY"]
+supabase = create_client(supabase_url, supabase_key)
 
-df = load_data()
+# Fetch data
+data = supabase.table("snow_raw_data").select("*").execute()
+df = pd.DataFrame(data.data)
 
-# Show raw table
 st.subheader("📊 Snow Data from Supabase")
 st.dataframe(df, use_container_width=True)
 
