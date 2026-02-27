@@ -1,46 +1,39 @@
 import streamlit as st
 import pandas as pd
+import psycopg2
 import plotly.express as px
 
 st.set_page_config(page_title="Himalayan Snow Monitor", layout="wide")
 
-st.title("🏔 Himalayan Snow Monitor - Uttarakhand")
-st.markdown("Monthly Snow Cover Percentage Analysis (2022 vs 2023)")
+st.title("🏔 Himalayan Snow Monitor - Live Supabase Integration")
 
-uploaded_file = st.file_uploader("Upload Snow Data CSV", type=["csv"])
-
-if uploaded_file:
-    df = pd.read_csv(uploaded_file)
-
-    st.subheader("📊 Raw Data")
-    st.dataframe(df, use_container_width=True)
-
-    # Line chart comparison
-    fig = px.line(
-        df,
-        x="Month",
-        y="Snow_Percentage",
-        color="Year",
-        markers=True,
-        title="Monthly Snow Percentage Comparison"
+@st.cache_data
+def load_data():
+    conn = psycopg2.connect(
+        host=st.secrets["DB_HOST"],
+        database=st.secrets["DB_NAME"],
+        user=st.secrets["DB_USER"],
+        password=st.secrets["DB_PASSWORD"],
+        port=st.secrets["DB_PORT"]
     )
+    
+    query = "SELECT * FROM snow_data;"
+    df = pd.read_sql(query, conn)
+    conn.close()
+    return df
 
-    st.plotly_chart(fig, use_container_width=True)
+df = load_data()
 
-    # Yearly average
-    avg = df.groupby("Year")["Snow_Percentage"].mean().reset_index()
+st.subheader("📊 Snow Data from Supabase")
+st.dataframe(df, use_container_width=True)
 
-    st.subheader("📈 Average Snow % by Year")
-    st.dataframe(avg, use_container_width=True)
+fig = px.line(
+    df,
+    x="month",
+    y="snow_percentage",
+    color="year",
+    markers=True,
+    title="Monthly Snow Percentage Comparison"
+)
 
-    # Simple insight
-    highest_month = df.loc[df["Snow_Percentage"].idxmax()]
-
-    st.subheader("🔎 Insight")
-    st.write(
-        f"Highest snow recorded: {highest_month['Snow_Percentage']}% "
-        f"in {highest_month['Month']} {highest_month['Year']}."
-    )
-
-else:
-    st.info("Please upload your snow dataset CSV to begin.")
+st.plotly_chart(fig, use_container_width=True)
