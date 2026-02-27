@@ -17,7 +17,7 @@ def load_data():
         port=st.secrets["DB_PORT"]
     )
     
-    query = "SELECT * FROM snow_data;"
+    query = "SELECT * FROM snow_raw_data;"
     df = pd.read_sql(query, conn)
     conn.close()
     return df
