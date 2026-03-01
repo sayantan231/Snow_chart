@@ -4,7 +4,7 @@ import plotly.express as px
 
 st.set_page_config(page_title="Himalayan Snow Monitor", layout="wide")
 st.title("🏔 Himalayan Snow Monitor - CSV Upload")
-st.markdown("Compare monthly snow percentages for 2022 vs 2023")
+st.markdown("There should be 6 columns-month,month_name,area(pre-year),area(post-year),percentage(pre-year),percentage(post-year)")
 
 # Upload CSV
 uploaded_file = st.file_uploader("Upload your snow CSV file", type=["csv"])
